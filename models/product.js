@@ -4,7 +4,7 @@ const skuSchema = new Schema({ size: Number, available: Boolean });
 
 const colorSchema = new Schema(
   {
-    styleColor: { type: String, required: true },
+    colorCode: { type: String, required: true },
     colorDescription: { type: String, required: true },
     fullPrice: { type: Number, required: true },
     currentPrice: { type: Number, required: true },
@@ -25,6 +25,7 @@ const productSchema = new Schema({
   styleCode: { type: String, required: true },
   category: [{ type: String, required: true }],
   colors: [colorSchema],
+  sizeChartUrl: { type: String, required: true },
 });
 
 module.exports = model("Product", productSchema);
