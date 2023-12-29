@@ -27,3 +27,9 @@ exports.getProductColors = async function (req, res) {
   );
   res.json(product.colors);
 };
+
+exports.postCart = async function (req, res) {
+  const { id, colorCode, size } = req.body;
+  const user = await req.user.addToCart(id, colorCode, size);
+  res.json(user);
+};
