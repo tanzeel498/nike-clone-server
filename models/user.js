@@ -1,19 +1,19 @@
 const { Schema, model } = require("mongoose");
 
+const cartItemSchema = new Schema({
+  product: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "Product",
+  },
+  colorCode: { type: String, required: true },
+  size: { type: Number, required: true },
+  quantity: { type: Number, required: true },
+});
+
 const cartSchema = new Schema(
   {
-    items: [
-      {
-        productId: {
-          type: Schema.Types.ObjectId,
-          required: true,
-          ref: "Product",
-        },
-        colorCode: { type: String, required: true },
-        size: { type: Number, required: true },
-        quantity: { type: Number, required: true },
-      },
-    ],
+    items: [cartItemSchema],
   },
   { _id: false }
 );
@@ -30,14 +30,17 @@ const userSchema = new Schema({
 });
 
 userSchema.methods.addToCart = function (productId, colorCode, size) {
-  const existingProduct = this.cart.items?.find(
-    (p) => p.productId.toString() === productId && p.colorCode === colorCode
+  const existingProduct = this.cart?.items?.find(
+    (p) =>
+      p.product?.toString() === productId &&
+      p.colorCode === colorCode &&
+      p.size === size
   );
 
   if (existingProduct) {
     existingProduct.quantity += 1;
   } else {
-    this.cart.items.push({ productId, colorCode, size, quantity: 1 });
+    this.cart.items.push({ product: productId, colorCode, size, quantity: 1 });
   }
   return this.save();
 };

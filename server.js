@@ -35,7 +35,7 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  User.findOne()
+  User.findById(req.session?.user?._id)
     .then((user) => {
       req.user = user;
       next();
