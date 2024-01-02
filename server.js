@@ -28,6 +28,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 7,
+      httpOnly: true,
     },
     store,
   })
@@ -49,16 +50,6 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log("Mongoose connected!");
-    User.findOne().then((user) => {
-      if (!user) {
-        const newUser = new User({
-          email: "tanzeel@test.com",
-          name: "Tanzeel",
-          cart: { items: [] },
-        });
-        newUser.save();
-      }
-    });
     app.listen(PORT, () => console.log(`server started on ${PORT}`));
   })
   .catch((err) => console.log(err));

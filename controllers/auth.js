@@ -1,4 +1,7 @@
+const bcrypt = require("bcrypt");
 const User = require("../models/user");
+
+const saltRounds = 10;
 
 exports.postCheckUser = async (req, res, next) => {
   const email = req.body.email;
@@ -16,35 +19,41 @@ exports.verifyOtp = async (req, res, next) => {
 exports.postSignUp = async (req, res, next) => {
   const { email, firstName, lastName, password, dob, emailSignUp, tos } =
     req.body;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+
   const newUser = new User({
     email,
     firstName,
     lastName,
-    password,
+    password: hashedPassword,
     dob,
     emailSignUp,
     tos,
     cart: { items: [] },
   });
   newUser.save().then((user) => {
-    req.session.user = user;
-    res.json(user);
+    const { password, ...userData } = user._doc;
+    req.session.user = userData;
+    res.json(userData);
   });
 };
 
 exports.postLogin = async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (user.password !== password) return res.json(null);
-  req.session.user = user;
-  return res.json(user);
+  const passwordMatch = await bcrypt.compare(password, user.password);
+
+  if (!passwordMatch) return res.json(null);
+  const { password: userPassword, ...userData } = user._doc;
+  req.session.user = userData;
+  return res.json(userData);
 };
 
 exports.getUser = (req, res) => {
   res.json(req.session);
 };
 
-exports.getLogout = (req, res) => {
+exports.postLogout = (req, res) => {
   req.session.destroy((err) => {
     if (err) console.log(err);
     res.json({ logout: true });
