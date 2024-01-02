@@ -3,24 +3,33 @@ require("dotenv").config();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const session = require("express-session");
+const MongoDBStore = require("connect-mongodb-session")(session);
 
 const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
 const User = require("./models/user");
 
 const PORT = process.env.PORT || 3000;
+const store = new MongoDBStore({
+  uri: process.env.MONGO_URI,
+  collection: "mySessions",
+});
+
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 app.use(
   session({
-    secret: "this is my nike-clone-react server",
+    secret: process.env.SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: true, httpOnly: true },
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7,
+    },
+    store,
   })
 );
 
@@ -50,6 +59,6 @@ mongoose
         newUser.save();
       }
     });
-    app.listen(PORT);
+    app.listen(PORT, () => console.log(`server started on ${PORT}`));
   })
   .catch((err) => console.log(err));
