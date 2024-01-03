@@ -5,8 +5,9 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoDBStore = require("connect-mongodb-session")(session);
 
-const shopRoutes = require("./routes/shop");
+const productRoutes = require("./routes/product");
 const authRoutes = require("./routes/auth");
+const cartRoutes = require("./routes/cart");
 const User = require("./models/user");
 
 const PORT = process.env.PORT || 3000;
@@ -43,8 +44,9 @@ app.use((req, res, next) => {
     .catch((err) => console.log(err));
 });
 
-app.use(shopRoutes);
+app.use(productRoutes);
 app.use(authRoutes);
+app.use(cartRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)

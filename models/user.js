@@ -52,9 +52,9 @@ userSchema.methods.deleteFromCart = function (productId) {
   return this.save();
 };
 
-userSchema.methods.clearCart = function () {
+userSchema.methods.clearCart = async function () {
   this.cart = { items: [] };
-  return this.save();
+  this.save();
 };
 
 module.exports = model("User", userSchema);
