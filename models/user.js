@@ -18,6 +18,21 @@ const cartSchema = new Schema(
   { _id: false }
 );
 
+const addressSchema = new Schema(
+  {
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
+    address: { type: String, required: true },
+    apt: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    postalCode: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 const userSchema = new Schema({
   email: { type: String, required: true },
   firstName: { type: String, required: true },
@@ -27,6 +42,7 @@ const userSchema = new Schema({
   emailSignUp: Boolean,
   tos: Boolean,
   cart: cartSchema,
+  address: addressSchema,
 });
 
 userSchema.methods.addToCart = function (productId, colorCode, size) {
