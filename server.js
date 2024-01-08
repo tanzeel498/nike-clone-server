@@ -8,7 +8,7 @@ const MongoDBStore = require("connect-mongodb-session")(session);
 const productRoutes = require("./routes/product");
 const authRoutes = require("./routes/auth");
 const cartRoutes = require("./routes/cart");
-const addressRoutes = require("./routes/address");
+const checkoutRoutes = require("./routes/checkout");
 const User = require("./models/user");
 
 const PORT = process.env.PORT || 3000;
@@ -48,7 +48,7 @@ app.use((req, res, next) => {
 app.use(productRoutes);
 app.use(authRoutes);
 app.use(cartRoutes);
-app.use(addressRoutes);
+app.use(checkoutRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)
