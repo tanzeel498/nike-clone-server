@@ -1,6 +1,7 @@
 const User = require("../models/user");
 
 exports.getAddress = (req, res) => {
+  console.log("get address function");
   res.json(req.user.address);
 };
 
@@ -12,13 +13,12 @@ exports.postAddress = async (req, res) => {
 
 exports.getPayment = (req, res) => {
   const payment = req.user.payment;
-  payment.cards = payment.cards.filter((card) => card.saveCardInfo);
-  console.log(payment);
+  if (!payment?.saveCardInfo) res.json(null);
   res.json(payment);
 };
 
 exports.postPayment = async (req, res) => {
-  req.user.payment.push(req.body);
+  req.user.payment = req.body;
   const user = await req.user.save();
   res.json(user.payment);
 };

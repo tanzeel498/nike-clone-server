@@ -33,13 +33,16 @@ const addressSchema = new Schema(
   { _id: false }
 );
 
-const cardSchema = new Schema({
-  cardNumber: { type: Number, required: true },
-  cvv: { type: Number, required: true },
-  expiryDate: { type: String, required: true },
-  saveCardInfo: { type: Boolean, required: true },
-  billingAddress: addressSchema,
-});
+const cardSchema = new Schema(
+  {
+    cardNumber: { type: Number, required: true },
+    cvv: { type: Number, required: true },
+    expiryDate: { type: String, required: true },
+    saveCardInfo: { type: Boolean, required: true },
+    billingAddress: addressSchema,
+  },
+  { _id: false }
+);
 
 const userSchema = new Schema({
   email: { type: String, required: true },
@@ -51,7 +54,7 @@ const userSchema = new Schema({
   tos: Boolean,
   cart: cartSchema,
   address: addressSchema,
-  payment: [cardSchema],
+  payment: cardSchema,
 });
 
 userSchema.methods.addToCart = function (productId, colorCode, size) {
