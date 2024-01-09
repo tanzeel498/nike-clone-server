@@ -11,11 +11,14 @@ exports.postAddress = async (req, res) => {
 };
 
 exports.getPayment = (req, res) => {
-  res.json(req.user.payment);
+  const payment = req.user.payment;
+  payment.cards = payment.cards.filter((card) => card.saveCardInfo);
+  console.log(payment);
+  res.json(payment);
 };
 
 exports.postPayment = async (req, res) => {
-  req.user.payment = req.body;
+  req.user.payment.push(req.body);
   const user = await req.user.save();
   res.json(user.payment);
 };

@@ -22,16 +22,24 @@ const addressSchema = new Schema(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true },
-    phone: { type: String, required: true },
+    email: String,
+    phone: String,
     address: { type: String, required: true },
-    apt: { type: String, required: true },
+    apt: String,
     city: { type: String, required: true },
     state: { type: String, required: true },
     postalCode: { type: Number, required: true },
   },
   { _id: false }
 );
+
+const cardSchema = new Schema({
+  cardNumber: { type: Number, required: true },
+  cvv: { type: Number, required: true },
+  expiryDate: { type: String, required: true },
+  saveCardInfo: { type: Boolean, required: true },
+  billingAddress: addressSchema,
+});
 
 const userSchema = new Schema({
   email: { type: String, required: true },
@@ -43,6 +51,7 @@ const userSchema = new Schema({
   tos: Boolean,
   cart: cartSchema,
   address: addressSchema,
+  payment: [cardSchema],
 });
 
 userSchema.methods.addToCart = function (productId, colorCode, size) {
