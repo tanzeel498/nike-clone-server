@@ -1,4 +1,4 @@
-const { Schema, model } = require("mongoose");
+import { Schema, model } from "mongoose";
 
 const cartItemSchema = new Schema({
   product: {
@@ -85,4 +85,4 @@ userSchema.methods.clearCart = async function () {
   this.save();
 };
 
-module.exports = model("User", userSchema);
+export default User = model("User", userSchema);

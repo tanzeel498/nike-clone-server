@@ -1,4 +1,4 @@
-const { Schema, model } = require("mongoose");
+import { Schema, model } from "mongoose";
 
 const skuSchema = new Schema({ size: Number, available: Boolean });
 
@@ -28,4 +28,4 @@ const productSchema = new Schema({
   sizeChartUrl: { type: String, required: true },
 });
 
-module.exports = model("Product", productSchema);
+export default Product = model("Product", productSchema);
