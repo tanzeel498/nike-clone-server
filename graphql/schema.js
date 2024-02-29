@@ -1,5 +1,5 @@
 const graphqlSchema = `
-  type ReturnUser {
+  type UserDoc {
     _id: ID!
     email: String!
     firstName: String!
@@ -7,9 +7,23 @@ const graphqlSchema = `
     token: String!
   }
 
+  input UserData {
+    email: String!
+    firstName: String!
+    lastName: String!
+    password: String!
+    dob: String!
+    tos: Boolean!
+    emailSignUp: Boolean!
+  }
+
   type Query {
     join(email: String!): Int!
-    login(email: String!, password: String!): ReturnUser!
+    login(email: String!, password: String!) : UserDoc!
+  }
+
+  type Mutation {
+    signup(user: UserData) : UserDoc!
   }
 
 `;
