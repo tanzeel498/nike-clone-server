@@ -85,4 +85,5 @@ userSchema.methods.clearCart = async function () {
   this.save();
 };
 
-export default User = model("User", userSchema);
+const User = model("User", userSchema);
+export default User;
