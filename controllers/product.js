@@ -9,7 +9,7 @@ exports.getProduct = async function (req, res, next) {
   const productId = req.params.id;
   const activeColor = req.query.color;
 
-  const product = await Product.findOne({ _id: productId });
+  const product = await Product.findOne({ _id: productId }, {});
   if (activeColor) {
     product.colors = product.colors.filter(
       (color) => color.colorCode === activeColor

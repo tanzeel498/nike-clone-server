@@ -28,4 +28,5 @@ const productSchema = new Schema({
   sizeChartUrl: { type: String, required: true },
 });
 
-export default Product = model("Product", productSchema);
+const Product = model("Product", productSchema);
+export default Product;
