@@ -4,7 +4,7 @@ const graphqlSchema = `
     email: String!
     firstName: String!
     lastName: String!
-    token: String!
+    token: String
   }
 
   type ProductSku {
@@ -42,10 +42,12 @@ const graphqlSchema = `
   }
 
   type CartItem {
+    _id: ID!
     product: Product!
     colorCode: String!
     size: Float!
     quantity: Int!
+    currentPrice: Float!
   }
 
   type CartDoc {
@@ -64,16 +66,25 @@ const graphqlSchema = `
     code: Int!
   }
 
+  input CartItemUpdateData {
+    size: Float
+    quantity: Int
+  }
+
   type Query {
     join(email: String!): Int!
     login(email: String!, password: String!) : UserDoc!
+    user: UserDoc!
     products: [Product!]!
     product(id: ID!, color: String): Product!
-    cart: [CartDoc!]
+    cart: CartDoc!
   }
 
   type Mutation {
     signup(user: UserData) : UserDoc!
+    addToCart(id: ID!, colorCode: String!, size: Float!, currentPrice: Float!): Int!
+    updateCartItem(id: ID!, data: CartItemUpdateData!): Int!
+    deleteCartItem(id: ID!): Int!
   }
 
 `;

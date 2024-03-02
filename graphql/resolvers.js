@@ -87,6 +87,13 @@ const graphqlResolvers = {
       return { ...new UserDoc(user), token };
     },
 
+    user: async function (_, args, context) {
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+      const user = await User.findById(context.req.userId);
+      console.log("returning userDoc");
+      return new UserDoc(user);
+    },
+
     products: async function () {
       const products = await Product.find({});
       console.log(products._doc);
@@ -106,15 +113,16 @@ const graphqlResolvers = {
 
     cart: async function () {
       // TODO.  Later it will return cart items based on userId
-      const cart = await Cart.find({}).populate("items.product");
+      const userId = "65e21abd8130eef41e3bee8a";
+      const cart = await Cart.findOne({ userId }).populate("items.product");
 
+      if (!cart) throw new GraphQLError("No Items in Cart!");
       return cart._doc;
     },
   },
 
   Mutation: {
     signup: async function (_, { user }) {
-      console.log(user);
       const saltRounds = 12;
       const {
         email,
@@ -160,6 +168,58 @@ const graphqlResolvers = {
       const token = createJWT(savedUser);
       // return user along with token
       return { ...new UserDoc(savedUser), token };
+    },
+
+    addToCart: async function (_, { id, colorCode, size, currentPrice }) {
+      // get userId from jwt load that user from DB
+      // use 65e21abd8130eef41e3bee8a for now
+      const userId = "65e21abd8130eef41e3bee8a";
+      let cart = await Cart.findOne({ userId });
+      let existingProduct = null;
+      if (!cart) {
+        cart = new Cart({ userId });
+      } else {
+        existingProduct = cart.items?.find(
+          (p) =>
+            p.product?.toString() === id &&
+            p.colorCode === colorCode &&
+            p.size === size
+        );
+      }
+
+      if (existingProduct) {
+        existingProduct.quantity += 1;
+      } else {
+        cart.items.push({
+          product: id,
+          colorCode,
+          size,
+          quantity: 1,
+          currentPrice,
+        });
+      }
+      await cart.save();
+      return 201;
+    },
+
+    updateCartItem: async function (_, { id, data }, context) {
+      console.log(context.params.query);
+      const userId = "65e21abd8130eef41e3bee8a";
+      const cart = await Cart.findOne({ userId });
+      const cartItem = cart.items.id(id);
+      cartItem.set({ ...cartItem._doc, ...data });
+
+      await cart.save();
+      return 200;
+    },
+
+    deleteCartItem: async function (_, { id }) {
+      const userId = "65e21abd8130eef41e3bee8a";
+      const cart = await Cart.findOne({ userId });
+      cart.items.id(id).deleteOne();
+      await cart.save();
+
+      return 200;
     },
   },
 };
