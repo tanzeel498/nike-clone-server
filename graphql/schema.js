@@ -1,10 +1,24 @@
 const graphqlSchema = `
+
+  type AddressData {
+    firstName: String!
+    lastName: String!
+    email: String!
+    phone: String!
+    address: String!
+    apt: String
+    city: String!
+    state: String!
+    postalCode: Int!
+  }
+
   type UserDoc {
     _id: ID!
     email: String!
     firstName: String!
     lastName: String!
-    token: String
+    shippingAddress: AddressData
+    token: String!
   }
 
   type ProductSku {
@@ -71,6 +85,18 @@ const graphqlSchema = `
     quantity: Int
   }
 
+  input AddressInputData {
+    firstName: String!
+    lastName: String!
+    email: String!
+    phone: String!
+    address: String!
+    apt: String
+    city: String!
+    state: String!
+    postalCode: Int!
+  }
+
   type Query {
     join(email: String!): Int!
     login(email: String!, password: String!) : UserDoc!
@@ -78,6 +104,7 @@ const graphqlSchema = `
     products: [Product!]!
     product(id: ID!, color: String): Product!
     cart: CartDoc!
+    createPaymentIntent: String!
   }
 
   type Mutation {
@@ -85,6 +112,7 @@ const graphqlSchema = `
     addToCart(id: ID!, colorCode: String!, size: Float!, currentPrice: Float!): Int!
     updateCartItem(id: ID!, data: CartItemUpdateData!): Int!
     deleteCartItem(id: ID!): Int!
+    updateAddress(data: AddressInputData!): AddressData!
   }
 
 `;

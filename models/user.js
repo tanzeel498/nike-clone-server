@@ -4,8 +4,8 @@ const addressSchema = new Schema(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: String,
-    phone: String,
+    email: { type: String, required: true },
+    phone: { type: String, required: true },
     address: { type: String, required: true },
     apt: String,
     city: { type: String, required: true },
@@ -15,16 +15,16 @@ const addressSchema = new Schema(
   { _id: false }
 );
 
-const cardSchema = new Schema(
-  {
-    cardNumber: { type: Number, required: true },
-    cvv: { type: Number, required: true },
-    expiryDate: { type: String, required: true },
-    saveCardInfo: { type: Boolean, required: true },
-    billingAddress: addressSchema,
-  },
-  { _id: false }
-);
+// const cardSchema = new Schema(
+//   {
+//     cardNumber: { type: Number, required: true },
+//     cvv: { type: Number, required: true },
+//     expiryDate: { type: String, required: true },
+//     saveCardInfo: { type: Boolean, required: true },
+//     billingAddress: addressSchema,
+//   },
+//   { _id: false }
+// );
 
 const userSchema = new Schema({
   email: { type: String, required: true },
@@ -34,8 +34,8 @@ const userSchema = new Schema({
   dob: { type: String, required: true },
   emailSignUp: { type: Boolean, required: true },
   tos: { type: Boolean, required: true },
-  address: addressSchema,
-  payment: cardSchema,
+  shippingAddress: addressSchema,
+  // payment: cardSchema,
 });
 
 const User = model("User", userSchema);

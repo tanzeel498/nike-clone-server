@@ -3,11 +3,14 @@ import { GraphQLError } from "graphql";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { createTransport } from "nodemailer";
+import Stripe from "stripe";
 
 import User from "../models/user.js";
 import Cart from "../models/cart.js";
 import Product from "../models/product.js";
 import SignUpCode from "../models/signupCode.js";
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const transporter = createTransport({
   host: "smtp-relay.brevo.com",
@@ -21,6 +24,7 @@ class UserDoc {
     this.email = user.email;
     this.firstName = user.firstName;
     this.lastName = user.lastName;
+    this.shippingAddress = user.shippingAddress;
   }
 }
 
@@ -119,6 +123,17 @@ const graphqlResolvers = {
       if (!cart) throw new GraphQLError("No Items in Cart!");
       return cart._doc;
     },
+
+    createPaymentIntent: async function (_, args, context) {
+      // if (!context.req.isAuth) throw new GraphQLError("No User found!");
+      const userId = "65e21abd8130eef41e3bee8a";
+      const cart = await Cart.findOne({ userId });
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: 434,
+        currency: "usd",
+      });
+      return paymentIntent.client_secret;
+    },
   },
 
   Mutation: {
@@ -203,7 +218,6 @@ const graphqlResolvers = {
     },
 
     updateCartItem: async function (_, { id, data }, context) {
-      console.log(context.params.query);
       const userId = "65e21abd8130eef41e3bee8a";
       const cart = await Cart.findOne({ userId });
       const cartItem = cart.items.id(id);
@@ -220,6 +234,15 @@ const graphqlResolvers = {
       await cart.save();
 
       return 200;
+    },
+
+    updateAddress: async function (_, { data }, context) {
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
+      const user = await User.findById(context.req.userId);
+      user.shippingAddress = data;
+      await user.save();
+      return data;
     },
   },
 };
