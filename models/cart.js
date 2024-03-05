@@ -9,7 +9,6 @@ const cartItemSchema = new Schema({
   colorCode: { type: String, required: true },
   size: { type: Number, required: true },
   quantity: { type: Number, required: true },
-  currentPrice: { type: Number, required: true },
 });
 
 const cartSchema = new Schema({

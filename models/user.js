@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-const addressSchema = new Schema(
+export const addressSchema = new Schema(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
@@ -15,17 +15,6 @@ const addressSchema = new Schema(
   { _id: false }
 );
 
-// const cardSchema = new Schema(
-//   {
-//     cardNumber: { type: Number, required: true },
-//     cvv: { type: Number, required: true },
-//     expiryDate: { type: String, required: true },
-//     saveCardInfo: { type: Boolean, required: true },
-//     billingAddress: addressSchema,
-//   },
-//   { _id: false }
-// );
-
 const userSchema = new Schema({
   email: { type: String, required: true },
   firstName: { type: String, required: true },
@@ -35,8 +24,8 @@ const userSchema = new Schema({
   emailSignUp: { type: Boolean, required: true },
   tos: { type: Boolean, required: true },
   shippingAddress: addressSchema,
-  // payment: cardSchema,
 });
 
 const User = model("User", userSchema);
+
 export default User;

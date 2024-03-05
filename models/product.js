@@ -2,19 +2,16 @@ import { Schema, model } from "mongoose";
 
 const skuSchema = new Schema({ size: Number, available: Boolean });
 
-const colorSchema = new Schema(
-  {
-    colorCode: { type: String, required: true },
-    colorDescription: { type: String, required: true },
-    fullPrice: { type: Number, required: true },
-    currentPrice: { type: Number, required: true },
-    portraitUrl: { type: String, required: true },
-    squarishUrl: { type: String, required: true },
-    images: [{ src: String, alt: String }],
-    skus: [skuSchema],
-  },
-  { _id: false }
-);
+const colorSchema = new Schema({
+  colorCode: { type: String, required: true },
+  colorDescription: { type: String, required: true },
+  fullPrice: { type: Number, required: true },
+  currentPrice: { type: Number, required: true },
+  portraitUrl: { type: String, required: true },
+  squarishUrl: { type: String, required: true },
+  images: [{ src: String, alt: String }],
+  skus: [skuSchema],
+});
 
 const productSchema = new Schema({
   title: { type: String, required: true },

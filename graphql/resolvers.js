@@ -9,6 +9,7 @@ import User from "../models/user.js";
 import Cart from "../models/cart.js";
 import Product from "../models/product.js";
 import SignUpCode from "../models/signupCode.js";
+import Order from "../models/order.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -17,6 +18,8 @@ const transporter = createTransport({
   port: 587,
   auth: { user: "tanzeel498@gmail.com", pass: process.env.BREVO_SMTP_KEY },
 });
+
+// TODO.. fix cart to get currentPrice from product
 
 class UserDoc {
   constructor(user) {
@@ -36,6 +39,14 @@ function createJWT(user) {
       expiresIn: "5 days",
     }
   );
+}
+
+function addCurrentPriceToCartItems(cart) {
+  cart.items?.forEach((item) => {
+    item.product.colors?.forEach((c) => {
+      if (c.colorCode === item.colorCode) item.currentPrice = c.currentPrice;
+    });
+  });
 }
 
 async function generateCode(email) {
@@ -118,21 +129,15 @@ const graphqlResolvers = {
     cart: async function () {
       // TODO.  Later it will return cart items based on userId
       const userId = "65e21abd8130eef41e3bee8a";
-      const cart = await Cart.findOne({ userId }).populate("items.product");
-
-      if (!cart) throw new GraphQLError("No Items in Cart!");
-      return cart._doc;
-    },
-
-    createPaymentIntent: async function (_, args, context) {
-      // if (!context.req.isAuth) throw new GraphQLError("No User found!");
-      const userId = "65e21abd8130eef41e3bee8a";
-      const cart = await Cart.findOne({ userId });
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: 434,
-        currency: "usd",
+      const cart = await Cart.findOne({ userId }).populate({
+        path: "items.product",
+        select: "colors.colorCode colors.currentPrice",
       });
-      return paymentIntent.client_secret;
+
+      if (!cart || !cart.items) throw new GraphQLError("No Items in Cart!");
+      // add currentPrice to each cartItem
+      addCurrentPriceToCartItems(cart);
+      return cart._doc;
     },
   },
 
@@ -243,6 +248,82 @@ const graphqlResolvers = {
       user.shippingAddress = data;
       await user.save();
       return data;
+    },
+
+    createPaymentIntent: async function (_, args, context) {
+      // if (!context.req.isAuth) throw new GraphQLError("No User found!");
+      const userId = "65e21abd8130eef41e3bee8a";
+      const cart = await Cart.findOne({ userId }).populate({
+        path: "items.product",
+        select: "colors.colorCode colors.currentPrice",
+      });
+      addCurrentPriceToCartItems(cart);
+      // calculate cart total
+      const cartTotal = cart.items.reduce(
+        (sum, item) => sum + item.quantity * item.currentPrice * 100,
+        0
+      );
+      console.log("logging cartTotal in createPaymentIntent");
+      console.log(cartTotal);
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: cartTotal,
+        currency: "usd",
+      });
+      return paymentIntent.client_secret;
+    },
+
+    createOrder: async function (_, { paymentIntent }, context) {
+      const userId = "65e21abd8130eef41e3bee8a";
+      const {
+        status,
+        amount_received,
+        id: paymentId,
+      } = await stripe.paymentIntents.retrieve(paymentIntent);
+
+      if (status !== "succeeded")
+        throw new GraphQLError("Your Payment was not successfull!");
+
+      // check if order with same paymentId already exists
+      const orderExists = await Order.findOne({ paymentId });
+      if (orderExists) throw new GraphQLError("Order already created!");
+
+      // create order based on the cart
+      const cart = await Cart.findOne({ userId }).populate({
+        path: "items.product",
+        select: "title subtitle colors.currentPrice colors.colorCode",
+      });
+      addCurrentPriceToCartItems(cart);
+
+      // check if amount_received matches cartTotal
+      const cartTotal = cart.items.reduce(
+        (sum, item) => sum + item.quantity * item.currentPrice * 100,
+        0
+      );
+
+      if (cartTotal !== amount_received)
+        throw new GraphQLError(
+          "Amount received does not matches with Cart Amount!"
+        );
+
+      const orderItems = cart.items.map((item) => {
+        const { product, currentPrice: price, ...data } = item;
+        const { title, subtitle } = product;
+        return { ...data, price, title, subtitle, product: product._id };
+      });
+
+      const user = await User.findById(userId);
+      const order = new Order({
+        userId,
+        address: user.shippingAddress,
+        items: orderItems,
+        paymentId,
+        totalAmount: amount_received / 100,
+      });
+      await order.save();
+      cart.items = [];
+      await cart.save();
+
+      return 200;
     },
   },
 };

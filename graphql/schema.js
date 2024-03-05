@@ -104,7 +104,6 @@ const graphqlSchema = `
     products: [Product!]!
     product(id: ID!, color: String): Product!
     cart: CartDoc!
-    createPaymentIntent: String!
   }
 
   type Mutation {
@@ -113,6 +112,8 @@ const graphqlSchema = `
     updateCartItem(id: ID!, data: CartItemUpdateData!): Int!
     deleteCartItem(id: ID!): Int!
     updateAddress(data: AddressInputData!): AddressData!
+    createPaymentIntent: String!
+    createOrder(paymentIntent: String!): Int!
   }
 
 `;
