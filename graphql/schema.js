@@ -1,6 +1,6 @@
 const graphqlSchema = `
 
-  type AddressData {
+  type Address {
     firstName: String!
     lastName: String!
     email: String!
@@ -17,7 +17,7 @@ const graphqlSchema = `
     email: String!
     firstName: String!
     lastName: String!
-    shippingAddress: AddressData
+    shippingAddress: Address
     token: String!
   }
 
@@ -64,6 +64,26 @@ const graphqlSchema = `
     currentPrice: Float!
   }
 
+  type OrderItem {
+    productId: ID!
+    colorCode: String!
+    size: Float!
+    quantity: Int!
+    price: Float!
+    title: String!
+    subtitle: String!
+  }
+
+  type Order {
+    _id: ID!
+    items: [OrderItem!]
+    address: Address!
+    paymentId: String!
+    totalAmount: Float!
+    status: String!
+    createdAt: String!
+  }
+
   type CartDoc {
     userId: ID!
     items: [CartItem!]!
@@ -104,6 +124,8 @@ const graphqlSchema = `
     products: [Product!]!
     product(id: ID!, color: String): Product!
     cart: CartDoc!
+    order(id: ID!) : Order!
+    orders: [Order!]
   }
 
   type Mutation {
@@ -111,7 +133,7 @@ const graphqlSchema = `
     addToCart(id: ID!, colorCode: String!, size: Float!, currentPrice: Float!): Int!
     updateCartItem(id: ID!, data: CartItemUpdateData!): Int!
     deleteCartItem(id: ID!): Int!
-    updateAddress(data: AddressInputData!): AddressData!
+    updateAddress(data: AddressInputData!): Address!
     createPaymentIntent: String!
     createOrder(paymentIntent: String!): Int!
   }

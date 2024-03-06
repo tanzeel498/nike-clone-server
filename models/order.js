@@ -3,7 +3,7 @@ import { addressSchema } from "./user.js";
 
 const orderItemSchema = new Schema(
   {
-    product: { type: Types.ObjectId, required: true, ref: "Product" },
+    productId: { type: Types.ObjectId, required: true, ref: "Product" },
     colorCode: { type: String, required: true },
     size: { type: Number, required: true },
     quantity: { type: Number, required: true },
@@ -25,13 +25,17 @@ const cardSchema = new Schema(
   { _id: false }
 );
 
-const orderSchema = new Schema({
-  userId: { type: Types.ObjectId, ref: "User", required: true },
-  items: [orderItemSchema],
-  address: addressSchema,
-  paymentId: { type: String, required: true },
-  totalAmount: { type: Number, required: true },
-});
+const orderSchema = new Schema(
+  {
+    userId: { type: Types.ObjectId, ref: "User", required: true },
+    items: [orderItemSchema],
+    address: addressSchema,
+    paymentId: { type: String, required: true },
+    totalAmount: { type: Number, required: true },
+    status: { type: String, required: true },
+  },
+  { timestamps: true }
+);
 
 const Order = model("Order", orderSchema);
 

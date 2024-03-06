@@ -139,6 +139,27 @@ const graphqlResolvers = {
       addCurrentPriceToCartItems(cart);
       return cart._doc;
     },
+
+    order: async function (_, { id }, context) {
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+      const order = await Order.findById(id);
+      if (order.userId.toString() !== context.req.userId)
+        throw new GraphQLError("Not Authorized!");
+
+      return { ...order._doc, createdAt: order.createdAt.toDateString() };
+    },
+
+    orders: async function (_, _args, context) {
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+      const orders = await Order.find({ userId: context.req.userId }).sort({
+        createdAt: -1,
+      });
+
+      return orders.map((o) => ({
+        ...o._doc,
+        createdAt: o.createdAt.toDateString(),
+      }));
+    },
   },
 
   Mutation: {
@@ -308,7 +329,7 @@ const graphqlResolvers = {
       const orderItems = cart.items.map((item) => {
         const { product, currentPrice: price, ...data } = item;
         const { title, subtitle } = product;
-        return { ...data, price, title, subtitle, product: product._id };
+        return { ...data, price, title, subtitle, productId: product._id };
       });
 
       const user = await User.findById(userId);
@@ -318,6 +339,7 @@ const graphqlResolvers = {
         items: orderItems,
         paymentId,
         totalAmount: amount_received / 100,
+        status: "Pending",
       });
       await order.save();
       cart.items = [];
