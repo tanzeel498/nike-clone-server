@@ -8,10 +8,14 @@ const authMiddleware = (req, res, next) => {
   }
   const token = authHeader.split(" ").at(1);
 
-  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  } catch (err) {
+    next();
+  }
 
   if (!decoded) {
-    console.log("jwt verification failed");
     req.isAuth = false;
     return next();
   }

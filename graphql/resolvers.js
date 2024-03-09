@@ -10,6 +10,7 @@ import Cart from "../models/cart.js";
 import Product from "../models/product.js";
 import SignUpCode from "../models/signupCode.js";
 import Order from "../models/order.js";
+// import productDB from "../data/script.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -111,7 +112,7 @@ const graphqlResolvers = {
 
     products: async function () {
       const products = await Product.find({});
-      console.log(products._doc);
+
       return products.map((p) => p._doc);
     },
 
@@ -345,6 +346,19 @@ const graphqlResolvers = {
       cart.items = [];
       await cart.save();
 
+      return 200;
+    },
+
+    createProduct: async function () {
+      const productDB = {};
+      const productExists = await Product.findOne({
+        styleCode: productDB.styleCode,
+      });
+
+      if (productExists) throw new GraphQLError("Product already exists!");
+
+      const newDBProduct = new Product(productDB);
+      await newDBProduct.save();
       return 200;
     },
   },

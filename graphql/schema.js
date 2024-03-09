@@ -30,6 +30,7 @@ const graphqlSchema = `
   type ProductImage {
     src: String!
     alt: String!
+    srcThumbnail: String!
   }
 
   type ProductColor {
@@ -136,6 +137,7 @@ const graphqlSchema = `
     updateAddress(data: AddressInputData!): Address!
     createPaymentIntent: String!
     createOrder(paymentIntent: String!): Int!
+    createProduct: Int!
   }
 
 `;
