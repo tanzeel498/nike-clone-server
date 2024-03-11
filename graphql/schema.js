@@ -32,7 +32,7 @@ const graphqlSchema = `
     alt: String!
     srcThumbnail: String!
   }
-
+ 
   type ProductColor {
     colorDescription: String!
     fullPrice: Float!
@@ -54,6 +54,11 @@ const graphqlSchema = `
     styleCode: String!
     colors: [ProductColor!]!
     sizeChartUrl: String!
+  }
+
+  type ProductsData {
+    products: [Product]!
+    numProducts: Int!
   }
 
   type CartItem {
@@ -122,7 +127,7 @@ const graphqlSchema = `
     join(email: String!): Int!
     login(email: String!, password: String!) : UserDoc!
     user: UserDoc!
-    products: [Product!]!
+    products(sortBy: String!, filter: String): ProductsData!
     product(id: ID!, color: String): Product!
     cart: CartDoc!
     order(id: ID!) : Order!
@@ -137,7 +142,7 @@ const graphqlSchema = `
     updateAddress(data: AddressInputData!): Address!
     createPaymentIntent: String!
     createOrder(paymentIntent: String!): Int!
-    createProduct: Int!
+    createProducts: Int!
   }
 
 `;

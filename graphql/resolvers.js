@@ -10,7 +10,7 @@ import Cart from "../models/cart.js";
 import Product from "../models/product.js";
 import SignUpCode from "../models/signupCode.js";
 import Order from "../models/order.js";
-// import productDB from "../data/script.js";
+// import productsDB from "../data/script.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -110,10 +110,26 @@ const graphqlResolvers = {
       return new UserDoc(user);
     },
 
-    products: async function () {
-      const products = await Product.find({});
+    products: async function (_, { sortBy, filter }) {
+      let sort;
+      switch (sortBy) {
+        case "newest":
+          sort = { createdAt: -1 };
+          break;
+        case "price-desc":
+          sort = { "colors.0.currentPrice": -1 };
+          break;
+        case "price-asc":
+          sort = { "colors.0.currentPrice": 1 };
+          break;
+        default:
+          sort = {};
+      }
 
-      return products.map((p) => p._doc);
+      const products = await Product.find().sort(sort);
+      const numProducts = await Product.countDocuments();
+
+      return { products: products.map((p) => p._doc), numProducts };
     },
 
     product: async function (_, { id, color }) {
@@ -349,16 +365,18 @@ const graphqlResolvers = {
       return 200;
     },
 
-    createProduct: async function () {
-      const productDB = {};
-      const productExists = await Product.findOne({
-        styleCode: productDB.styleCode,
-      });
+    createProducts: async function () {
+      // const productDB = {};
+      // const productExists = await Product.findOne({
+      //   styleCode: productDB.styleCode,
+      // });
 
-      if (productExists) throw new GraphQLError("Product already exists!");
+      // if (productExists) throw new GraphQLError("Product already exists!");
 
-      const newDBProduct = new Product(productDB);
-      await newDBProduct.save();
+      // const newDBProduct = new Product(productDB);
+      // await newDBProduct.save();
+      // uncomment below line to add all products at once
+      // await Product.insertMany(productsDB);
       return 200;
     },
   },
