@@ -111,9 +111,9 @@ const graphqlResolvers = {
     },
 
     products: async function (_, { sortBy, filter }) {
-      const { category, gender, size, price, color } = filter;
+      const { category, gender, size, price, color, q } = filter;
       let sortQuery;
-      let filterQuery = Object.keys(filter) ? { $and: [] } : {};
+      let filterQuery = Object.keys(filter).length ? { $and: [] } : {};
       // switch for sortBy
       switch (sortBy) {
         case "newest":
@@ -127,6 +127,10 @@ const graphqlResolvers = {
           break;
         default:
           sortQuery = {};
+      }
+      // search query condition
+      if (q) {
+        filterQuery.$and.push({ title: { $regex: q, $options: "i" } });
       }
       // filter condition for categories
       if (category) {
@@ -182,6 +186,15 @@ const graphqlResolvers = {
       const numProducts = await Product.countDocuments();
 
       return { products: products.map((p) => p._doc), numProducts };
+    },
+
+    searchProducts: async function (_, { q }) {
+      const products = await Product.find({
+        title: { $regex: q, $options: "i" },
+      }).limit(4);
+
+      if (!products.length) throw new GraphQLError("No products Found!");
+      return products.map((p) => p._doc);
     },
 
     product: async function (_, { id, color }) {

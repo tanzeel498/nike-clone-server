@@ -124,19 +124,21 @@ const graphqlSchema = `
     postalCode: Int!
   }
 
-  input Filter {
+  input ProductFilter {
     category: String
     gender: String
     size: String
     price: String
     color: String
+    q: String
   }
 
   type Query {
     join(email: String!): Int!
     login(email: String!, password: String!) : UserDoc!
     user: UserDoc!
-    products(sortBy: String!, filter: Filter): ProductsData!
+    products(sortBy: String!, filter: ProductFilter): ProductsData!
+    searchProducts(q: String!) : [Product!]
     product(id: ID!, color: String): Product!
     cart: CartDoc!
     order(id: ID!) : Order!
