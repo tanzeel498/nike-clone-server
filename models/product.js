@@ -1,6 +1,10 @@
 import { Schema, model } from "mongoose";
 
-const skuSchema = new Schema({ size: Number, available: Boolean });
+const skuSchema = new Schema({
+  size: String,
+  localizedSize: String,
+  available: Boolean,
+});
 
 const imageSchema = new Schema(
   {

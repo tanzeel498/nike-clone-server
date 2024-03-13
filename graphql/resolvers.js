@@ -111,22 +111,74 @@ const graphqlResolvers = {
     },
 
     products: async function (_, { sortBy, filter }) {
-      let sort;
+      const { category, gender, size, price, color } = filter;
+      let sortQuery;
+      let filterQuery = Object.keys(filter) ? { $and: [] } : {};
+      // switch for sortBy
       switch (sortBy) {
         case "newest":
-          sort = { createdAt: -1 };
+          sortQuery = { createdAt: -1 };
           break;
         case "price-desc":
-          sort = { "colors.0.currentPrice": -1 };
+          sortQuery = { "colors.0.currentPrice": -1 };
           break;
         case "price-asc":
-          sort = { "colors.0.currentPrice": 1 };
+          sortQuery = { "colors.0.currentPrice": 1 };
           break;
         default:
-          sort = {};
+          sortQuery = {};
+      }
+      // filter condition for categories
+      if (category) {
+        filterQuery.$and.push({
+          $or: [
+            { category: category },
+            { title: { $regex: category, $options: "i" } }, // case insensitive
+            { subtitle: { $regex: category, $options: "i" } },
+            { descriptionPreview: { $regex: category, $options: "i" } },
+          ],
+        });
       }
 
-      const products = await Product.find().sort(sort);
+      if (size) {
+        filterQuery.$and.push({
+          "colors.skus": {
+            $elemMatch: {
+              size: { $in: size.split("+") },
+              available: true,
+            },
+          },
+        });
+      }
+
+      if (gender) {
+        const genderArr = gender.split("+");
+        if (genderArr.includes("unisex")) {
+          const index = genderArr.indexOf("unisex");
+          genderArr.splice(index, 1);
+          if (!genderArr.includes("MEN")) genderArr.push("MEN");
+          if (!genderArr.includes("WOMEN")) genderArr.push("WOMEN");
+        }
+        filterQuery.$and.push({ gender: { $in: genderArr } });
+      }
+
+      if (color) {
+        filterQuery.$and.push({
+          "colors.colorDescription": {
+            $in: color.split("+").map((c) => new RegExp(c, "i")),
+          },
+        });
+      }
+
+      if (price) {
+        const priceQueries = price.split("+").map((range) => {
+          const [min, max] = range.split("-").map(parseFloat);
+          return { "colors.0.currentPrice": { $gte: min, $lte: max } };
+        });
+        filterQuery.$and.push({ $or: priceQueries });
+      }
+
+      const products = await Product.find(filterQuery).sort(sortQuery);
       const numProducts = await Product.countDocuments();
 
       return { products: products.map((p) => p._doc), numProducts };

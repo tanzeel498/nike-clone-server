@@ -23,7 +23,8 @@ const graphqlSchema = `
 
   type ProductSku {
     _id: ID!
-    size: Float!
+    size: String!
+    localizedSize: String!
     available: Boolean!
   }
 
@@ -123,11 +124,19 @@ const graphqlSchema = `
     postalCode: Int!
   }
 
+  input Filter {
+    category: String
+    gender: String
+    size: String
+    price: String
+    color: String
+  }
+
   type Query {
     join(email: String!): Int!
     login(email: String!, password: String!) : UserDoc!
     user: UserDoc!
-    products(sortBy: String!, filter: String): ProductsData!
+    products(sortBy: String!, filter: Filter): ProductsData!
     product(id: ID!, color: String): Product!
     cart: CartDoc!
     order(id: ID!) : Order!
