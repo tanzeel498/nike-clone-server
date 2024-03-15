@@ -139,14 +139,17 @@ const graphqlResolvers = {
       // filter condition for categories
       if (category) {
         filterQuery.$and.push({
-          $or: [
-            { category: category },
-            { title: { $regex: category, $options: "i" } }, // case insensitive
-            { subtitle: { $regex: category, $options: "i" } },
-            { descriptionPreview: { $regex: category, $options: "i" } },
-          ],
+          $or: category.split("+").map((cat) => ({
+            $or: [
+              { category: cat },
+              { title: { $regex: cat, $options: "i" } }, // case insensitive
+              { subtitle: { $regex: cat, $options: "i" } },
+              { descriptionPreview: { $regex: cat, $options: "i" } },
+            ],
+          })),
         });
       }
+      console.log(filterQuery?.$and?.at(0));
 
       if (size) {
         filterQuery.$and.push({
