@@ -7,7 +7,7 @@ const cartItemSchema = new Schema({
     ref: "Product",
   },
   colorCode: { type: String, required: true },
-  size: { type: Number, required: true },
+  size: { type: String, required: true },
   quantity: { type: Number, required: true },
 });
 

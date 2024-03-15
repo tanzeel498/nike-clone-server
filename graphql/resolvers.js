@@ -106,7 +106,6 @@ const graphqlResolvers = {
     user: async function (_, args, context) {
       if (!context.req.isAuth) throw new GraphQLError("No User found!");
       const user = await User.findById(context.req.userId);
-      console.log("returning userDoc");
       return new UserDoc(user);
     },
 
@@ -130,7 +129,12 @@ const graphqlResolvers = {
       }
       // search query condition
       if (q) {
-        filterQuery.$and.push({ title: { $regex: q, $options: "i" } });
+        filterQuery.$and.push({
+          $or: [
+            { title: { $regex: q, $options: "i" } },
+            { subtitle: { $regex: q, $options: "i" } },
+          ],
+        });
       }
       // filter condition for categories
       if (category) {
@@ -190,7 +194,10 @@ const graphqlResolvers = {
 
     searchProducts: async function (_, { q }) {
       const products = await Product.find({
-        title: { $regex: q, $options: "i" },
+        $or: [
+          { title: { $regex: q, $options: "i" } },
+          { subtitle: { $regex: q, $options: "i" } },
+        ],
       }).limit(4);
 
       if (!products.length) throw new GraphQLError("No products Found!");
@@ -208,10 +215,10 @@ const graphqlResolvers = {
       return product._doc;
     },
 
-    cart: async function () {
-      // TODO.  Later it will return cart items based on userId
-      const userId = "65e21abd8130eef41e3bee8a";
-      const cart = await Cart.findOne({ userId }).populate({
+    cart: async function (_, args, context) {
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
+      const cart = await Cart.findOne({ userId: context.req.userId }).populate({
         path: "items.product",
         select: "colors.colorCode colors.currentPrice",
       });
@@ -224,6 +231,7 @@ const graphqlResolvers = {
 
     order: async function (_, { id }, context) {
       if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
       const order = await Order.findById(id);
       if (order.userId.toString() !== context.req.userId)
         throw new GraphQLError("Not Authorized!");
@@ -233,6 +241,7 @@ const graphqlResolvers = {
 
     orders: async function (_, _args, context) {
       if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
       const orders = await Order.find({ userId: context.req.userId }).sort({
         createdAt: -1,
       });
@@ -293,14 +302,17 @@ const graphqlResolvers = {
       return { ...new UserDoc(savedUser), token };
     },
 
-    addToCart: async function (_, { id, colorCode, size, currentPrice }) {
-      // get userId from jwt load that user from DB
-      // use 65e21abd8130eef41e3bee8a for now
-      const userId = "65e21abd8130eef41e3bee8a";
-      let cart = await Cart.findOne({ userId });
+    addToCart: async function (
+      _,
+      { id, colorCode, size, currentPrice },
+      context
+    ) {
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
+      let cart = await Cart.findOne({ userId: context.req.userId });
       let existingProduct = null;
       if (!cart) {
-        cart = new Cart({ userId });
+        cart = new Cart({ userId: context.req.userId });
       } else {
         existingProduct = cart.items?.find(
           (p) =>
@@ -326,8 +338,9 @@ const graphqlResolvers = {
     },
 
     updateCartItem: async function (_, { id, data }, context) {
-      const userId = "65e21abd8130eef41e3bee8a";
-      const cart = await Cart.findOne({ userId });
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
+      const cart = await Cart.findOne({ userId: context.req.userId });
       const cartItem = cart.items.id(id);
       cartItem.set({ ...cartItem._doc, ...data });
 
@@ -335,9 +348,10 @@ const graphqlResolvers = {
       return 200;
     },
 
-    deleteCartItem: async function (_, { id }) {
-      const userId = "65e21abd8130eef41e3bee8a";
-      const cart = await Cart.findOne({ userId });
+    deleteCartItem: async function (_, { id }, context) {
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
+      const cart = await Cart.findOne({ userId: context.req.userId });
       cart.items.id(id).deleteOne();
       await cart.save();
 
@@ -354,9 +368,9 @@ const graphqlResolvers = {
     },
 
     createPaymentIntent: async function (_, args, context) {
-      // if (!context.req.isAuth) throw new GraphQLError("No User found!");
-      const userId = "65e21abd8130eef41e3bee8a";
-      const cart = await Cart.findOne({ userId }).populate({
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
+      const cart = await Cart.findOne({ userId: context.req.userId }).populate({
         path: "items.product",
         select: "colors.colorCode colors.currentPrice",
       });
@@ -376,7 +390,8 @@ const graphqlResolvers = {
     },
 
     createOrder: async function (_, { paymentIntent }, context) {
-      const userId = "65e21abd8130eef41e3bee8a";
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+
       const {
         status,
         amount_received,
@@ -391,7 +406,7 @@ const graphqlResolvers = {
       if (orderExists) throw new GraphQLError("Order already created!");
 
       // create order based on the cart
-      const cart = await Cart.findOne({ userId }).populate({
+      const cart = await Cart.findOne({ userId: context.req.userId }).populate({
         path: "items.product",
         select: "title subtitle colors.currentPrice colors.colorCode",
       });
@@ -414,9 +429,9 @@ const graphqlResolvers = {
         return { ...data, price, title, subtitle, productId: product._id };
       });
 
-      const user = await User.findById(userId);
+      const user = await User.findById(context.req.userId);
       const order = new Order({
-        userId,
+        userId: context.req.userId,
         address: user.shippingAddress,
         items: orderItems,
         paymentId,

@@ -66,7 +66,7 @@ const graphqlSchema = `
     _id: ID!
     product: Product!
     colorCode: String!
-    size: Float!
+    size: String!
     quantity: Int!
     currentPrice: Float!
   }
@@ -108,7 +108,7 @@ const graphqlSchema = `
   }
 
   input CartItemUpdateData {
-    size: Float
+    size: String
     quantity: Int
   }
 
@@ -147,7 +147,7 @@ const graphqlSchema = `
 
   type Mutation {
     signup(user: UserData) : UserDoc!
-    addToCart(id: ID!, colorCode: String!, size: Float!, currentPrice: Float!): Int!
+    addToCart(id: ID!, colorCode: String!, size: String!, currentPrice: Float!): Int!
     updateCartItem(id: ID!, data: CartItemUpdateData!): Int!
     deleteCartItem(id: ID!): Int!
     updateAddress(data: AddressInputData!): Address!

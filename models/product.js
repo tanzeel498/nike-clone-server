@@ -36,7 +36,7 @@ const productSchema = new Schema(
     styleCode: { type: String, required: true },
     category: [{ type: String, required: true }],
     colors: [colorSchema],
-    sizeChartUrl: { type: String, required: true },
+    sizeChartUrl: String,
   },
   { timestamps: true }
 );
