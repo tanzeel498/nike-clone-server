@@ -74,7 +74,7 @@ const graphqlSchema = `
   type OrderItem {
     productId: ID!
     colorCode: String!
-    size: Float!
+    size: String!
     quantity: Int!
     price: Float!
     title: String!

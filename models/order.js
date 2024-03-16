@@ -5,7 +5,7 @@ const orderItemSchema = new Schema(
   {
     productId: { type: Types.ObjectId, required: true, ref: "Product" },
     colorCode: { type: String, required: true },
-    size: { type: Number, required: true },
+    size: { type: String, required: true },
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
     title: { type: String, required: true },
