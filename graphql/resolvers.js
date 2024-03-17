@@ -152,7 +152,6 @@ const graphqlResolvers = {
           })),
         });
       }
-      console.log(filterQuery?.$and?.at(0));
 
       if (size) {
         filterQuery.$and.push({
@@ -308,7 +307,6 @@ const graphqlResolvers = {
     },
 
     forgotPassword: async function (_, { email }) {
-      console.log("forgot password _ " + email);
       if (!validator.isEmail(email))
         throw new GraphQLError("Enter a valid email!");
 
@@ -450,8 +448,6 @@ const graphqlResolvers = {
         (sum, item) => sum + item.quantity * item.currentPrice * 100,
         0
       );
-      console.log("logging cartTotal in createPaymentIntent");
-      console.log(cartTotal);
       const paymentIntent = await stripe.paymentIntents.create({
         amount: cartTotal,
         currency: "usd",

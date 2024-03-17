@@ -3,6 +3,7 @@ import "dotenv/config";
 import express from "express";
 import mongoose from "mongoose";
 import { createYoga, createSchema } from "graphql-yoga";
+import helmet from "helmet";
 
 import graphqlSchema from "./graphql/schema.js";
 import graphqlResolvers from "./graphql/resolvers.js";
@@ -22,8 +23,9 @@ app.use(express.json());
 
 // use cors or middleware below that
 // app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(helmet());
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_URL);
   res.setHeader("Access-Control-Allow-Methods", "POST, PUT");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   if (req.method === "OPTIONS") {

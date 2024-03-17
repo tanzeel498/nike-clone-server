@@ -15,3 +15,4 @@ data/
 *.njsproj
 *.sln
 *.sw?
+.vercel
