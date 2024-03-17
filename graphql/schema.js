@@ -17,6 +17,7 @@ const graphqlSchema = `
     email: String!
     firstName: String!
     lastName: String!
+    dob: String!
     shippingAddress: Address
     token: String!
   }
@@ -107,6 +108,14 @@ const graphqlSchema = `
     code: Int!
   }
 
+  input UserUpdateData {
+    firstName: String
+    lastName: String
+    dob: String
+    oldPassword: String
+    newPassword: String
+  }
+
   input CartItemUpdateData {
     size: String
     quantity: Int
@@ -135,18 +144,21 @@ const graphqlSchema = `
 
   type Query {
     join(email: String!): Int!
-    login(email: String!, password: String!) : UserDoc!
+    login(email: String!, password: String!): UserDoc!
     user: UserDoc!
     products(sortBy: String!, filter: ProductFilter): ProductsData!
     searchProducts(q: String!) : [Product!]
     product(id: ID!, color: String): Product!
     cart: CartDoc!
-    order(id: ID!) : Order!
+    order(id: ID!): Order!
     orders: [Order!]
   }
 
   type Mutation {
-    signup(user: UserData) : UserDoc!
+    signup(user: UserData): UserDoc!
+    forgotPassword(email: String!): Int!
+    resetPassword(email: String!, code: Int!, newPassword: String!): Int!
+    updateUser(data: UserUpdateData!) : UserDoc!
     addToCart(id: ID!, colorCode: String!, size: String!, currentPrice: Float!): Int!
     updateCartItem(id: ID!, data: CartItemUpdateData!): Int!
     deleteCartItem(id: ID!): Int!

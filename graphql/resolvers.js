@@ -13,6 +13,7 @@ import Order from "../models/order.js";
 // import productsDB from "../data/script.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const SALT_ROUNDS = 12;
 
 const transporter = createTransport({
   host: "smtp-relay.brevo.com",
@@ -28,6 +29,7 @@ class UserDoc {
     this.email = user.email;
     this.firstName = user.firstName;
     this.lastName = user.lastName;
+    this.dob = user.dob;
     this.shippingAddress = user.shippingAddress;
   }
 }
@@ -52,11 +54,11 @@ function addCurrentPriceToCartItems(cart) {
 
 async function generateCode(email) {
   await SignUpCode.deleteOne({ email });
-  const code = Math.round(Math.random() * 1000000);
+  const code = Math.round(Math.random() * 10000000);
   const codeObj = new SignUpCode({
     email,
     code,
-    expiry: Date.now() + 5 * 60 * 1000,
+    expiry: Date.now() + 10 * 60 * 1000,
   });
   await codeObj.save();
   return code;
@@ -79,12 +81,13 @@ const graphqlResolvers = {
         to: email,
         subject: `Here's your verification code ${code}`,
         html: `
-          <p>Enter the 6-digit code below to verify your identity and complete the sign up</p>
+          <p>Enter this code to verify your identity and complete the sign up</p>
           <h1>${code}</h1>
+          <p>This code is valid for next 10 minutes</p>
           <p>Thanks for helping us keep your account secure</p>
         `,
       });
-      return 204;
+      return 201;
     },
 
     login: async function (_, { email, password }) {
@@ -258,7 +261,6 @@ const graphqlResolvers = {
 
   Mutation: {
     signup: async function (_, { user }) {
-      const saltRounds = 12;
       const {
         email,
         firstName,
@@ -286,7 +288,7 @@ const graphqlResolvers = {
       });
       if (!codeVerified) throw new GraphQLError("Incorrect Code!");
       // create new user obj
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
       const userObj = new User({
         email,
         password: hashedPassword,
@@ -303,6 +305,71 @@ const graphqlResolvers = {
       const token = createJWT(savedUser);
       // return user along with token
       return { ...new UserDoc(savedUser), token };
+    },
+
+    forgotPassword: async function (_, { email }) {
+      console.log("forgot password _ " + email);
+      if (!validator.isEmail(email))
+        throw new GraphQLError("Enter a valid email!");
+
+      const user = await User.findOne({ email });
+      if (!user) throw new GraphQLError("Email does not exist!");
+
+      // generate code and send to email
+      const code = await generateCode(email);
+      await transporter.sendMail({
+        from: "'Nike Clone' <nikeclone@noreply.com>",
+        to: email,
+        subject: `Here's your Password Reset code ${code}`,
+        html: `
+          <p>Enter this code to reset your Password</p>
+          <h1>${code}</h1>
+          <p>This code is valid for next 10 minutes</p>
+          <p>Thanks for helping us keep your account secure</p>
+        `,
+      });
+      return 201;
+    },
+
+    resetPassword: async function (_, { email, code, newPassword }) {
+      // check for email and password validation
+      if (!validator.isEmail(email))
+        throw new GraphQLError("Enter a valid email!");
+      if (!validator.isLength(newPassword, { min: 8 })) {
+        throw new GraphQLError("Password doesn't match requirements");
+      }
+      // check for email existance in DB
+      const user = await User.findOne({ email });
+      if (!user) throw new GraphQLError("User does not Exist!");
+      // verify signupToken
+      const codeVerified = await SignUpCode.findOne({
+        email,
+        code,
+        expiry: { $gt: Date.now() },
+      });
+      if (!codeVerified) throw new GraphQLError("Incorrect Code!");
+      // create hashedPassword
+      user.password = await bcrypt.hash(newPassword, SALT_ROUNDS);
+      await user.save();
+      return 200;
+    },
+
+    updateUser: async function (_, { data }, context) {
+      if (!context.req.isAuth) throw new GraphQLError("No User found!");
+      const user = await User.findById(context.req.userId);
+      const { oldPassword, newPassword, ...updateData } = data;
+      // check if data contains update password data
+      if (oldPassword) {
+        const match = await bcrypt.compare(oldPassword, user.password);
+        if (!match) throw new GraphQLError("Old Password is Incorrect!");
+        const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+        user.password = hashedPassword;
+      }
+      for (const key in updateData) {
+        user[key] = updateData[key];
+      }
+      const updatedUser = await user.save();
+      return new UserDoc(updatedUser);
     },
 
     addToCart: async function (
