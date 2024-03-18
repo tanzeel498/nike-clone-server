@@ -115,6 +115,7 @@ const graphqlResolvers = {
     products: async function (_, { sortBy, filter }) {
       const { category, gender, size, price, color, q } = filter;
       let sortQuery;
+      let countDocumentsQuery = {};
       let filterQuery = Object.keys(filter).length ? { $and: [] } : {};
       // switch for sortBy
       switch (sortBy) {
@@ -173,6 +174,7 @@ const graphqlResolvers = {
           if (!genderArr.includes("WOMEN")) genderArr.push("WOMEN");
         }
         filterQuery.$and.push({ gender: { $in: genderArr } });
+        countDocumentsQuery.gender = { $in: genderArr };
       }
 
       if (color) {
@@ -192,7 +194,10 @@ const graphqlResolvers = {
       }
 
       const products = await Product.find(filterQuery).sort(sortQuery);
-      const numProducts = await Product.countDocuments();
+
+      if (category?.includes("EQUIPMENT"))
+        countDocumentsQuery = { category: "EQUIPMENT" };
+      const numProducts = await Product.countDocuments(countDocumentsQuery);
 
       return { products: products.map((p) => p._doc), numProducts };
     },
