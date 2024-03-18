@@ -1,5 +1,4 @@
 import "dotenv/config";
-// import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
 import { createYoga, createSchema } from "graphql-yoga";
@@ -21,8 +20,6 @@ const yoga = createYoga({ schema });
 // to parse json from req.body
 app.use(express.json());
 
-// use cors or middleware below that
-// app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(helmet());
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", process.env.CLIENT_URL);
