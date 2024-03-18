@@ -1,4 +1,4 @@
-# Backend for [Nike Clone React](https://nike-clone-react.vercel.app/)
+# Backend for [Nike Clone Server](https://nike-clone-react.vercel.app/)
 
 Nike clone react is a clone of [Nike](https://www.nike.com/) and is built for learning and portfolio purposes.
 
@@ -8,15 +8,13 @@ Live website is deployed at [Vercel](https://nike-clone-react.vercel.app/).
 
 ## Technologies
 
-- Built using Vite
-- React v18.2.0
-- React Router v6.16.0
-- Tanstack React Query v5.8.1
-- Tailwind CSS v3.3.3
-- Supabase v2.38.4(for Authentication)
-- React Hook Form v7.47.0
-- Swiper v10.3.1
-- React Icons v4.11.0
+- Express v4.18.2
+- GraphQL v16.8.1
+- Mongoose v8.0.3
+- Stripe v14.19.0
+- NodeMailer v6.9.11
+- Validator v13.11.0
+- jsonwebtoken v9.0.2
 
 ## Clone
 
